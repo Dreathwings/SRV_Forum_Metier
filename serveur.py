@@ -51,13 +51,13 @@ def validate():
     data = request.form
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
-    cur.execute("INSERT INTO forum-metier.DATA(ent_nom,ent_adresse,ent_cp,ent_ville,ent_desc,parcours,nb_p,p1_nom,p1_prenom,p1_email,p1_poste,p1_dej,p2_nom,p2_prenom,p2_email,p2_poste,p2_dej,p3_nom,p3_prenom,p3_email,p3_poste,p3_dej) VALUES (%s,%s,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    cur.execute("INSERT INTO `forum-metier`.DATA(ent_nom,ent_adresse,ent_cp,ent_ville,ent_desc,parcours,nb_p,p1_nom,p1_prenom,p1_email,p1_poste,p1_dej,p2_nom,p2_prenom,p2_email,p2_poste,p2_dej,p3_nom,p3_prenom,p3_email,p3_poste,p3_dej) VALUES (%s,%s,%s,%s,%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
                 ,(data.get("entreprise_nom",None),
                   data.get("entreprise_adresse",None),
                   data.get("code_postal",None),
                   data.get("ville",None),
                   data.get("entreprise_description",None),
-                  data.get("parcours_but",None),
+                  ",".join(request.form.getlist("parcours_but")),
                   data.get("nb_personnes",None),
                   data.get("participants[1][nom]",None),
                   data.get("participants[1][prenom]",None),
