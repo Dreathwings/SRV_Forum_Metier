@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tableau de bord inscriptions entreprises</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#121a33; --muted:#8a99b4; --text:#e6ecf7; --accent:#5b9bff; --good:#22c55e; --warn:#f59e0b; --border:#223052; --chip:#1a2447;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b1020,#0d1430 60%);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial}
+    header{position:sticky;top:0;z-index:10;backdrop-filter:saturate(1.2) blur(6px);background:rgba(11,16,32,.75);border-bottom:1px solid var(--border)}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    h1{font-size:20px;margin:0 0 8px 0}
+    .hint{color:var(--muted);font-size:12px}
+    input[type=file]{padding:10px 12px;border:1px dashed var(--border);border-radius:10px;background:#0a1228;color:var(--text)}
+    button{border:1px solid var(--border);background:var(--chip);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .05s ease,background .2s ease;font-weight:600}
+    button:hover{background:#23315d}
+    button:active{transform:scale(.98)}
+    button[disabled]{opacity:.5;cursor:not-allowed}
+    .grid{display:grid;gap:12px}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
+    @media(min-width:1024px){.stats{grid-template-columns:repeat(6,1fr)}}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+    .kpi{display:flex;flex-direction:column;gap:6px}
+    .kpi .label{color:var(--muted);font-size:12px}
+    .kpi .value{font-size:22px;font-weight:800}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--border);font-weight:600}
+    .chip-dot{width:8px;height:8px;border-radius:50%}
+    .chip-aii .chip-dot{background:var(--accent)}
+    .chip-ese .chip-dot{background:var(--warn)}
+    .chip-eme .chip-dot{background:var(--good)}
+    .section-title{margin:24px 0 8px 0;font-size:16px}
+    details.group{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--panel)}
+    details.group>summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+    details.group>summary::marker{display:none}
+    details.group[open]>summary{border-bottom:1px solid var(--border)}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    thead th{position:sticky;top:0;background:#101733;z-index:1}
+    th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+    tr:hover td{background:#0f1a3a}
+    .mono{font-variant-numeric:tabular-nums}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#0d1b3e;border:1px solid var(--border);font-size:12px}
+    .footer{color:var(--muted);font-size:12px;padding:16px 0 40px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Tableau de bord – Inscriptions entreprises</h1>
+      <div class="row">
+        <input id="fileInput" type="file" accept=".csv" />
+        <button id="btnExport" disabled>Exporter CSV personnes (Nom, Prénom, Poste, Entreprise)</button>
+        <span class="hint">Chargez <strong>dump.csv</strong>. Rien n’est envoyé hors du navigateur.</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="grid stats" id="stats">
+      <div class="card kpi"><div class="label">Personnes inscrites (total)</div><div id="k_total_people" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Déjeuners = OUI</div><div id="k_lunch_yes" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Entreprises (total)</div><div id="k_total_companies" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Personnes AII</div><div id="k_aii_people" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Personnes ESE</div><div id="k_ese_people" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Personnes EME</div><div id="k_eme_people" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Entreprises AII</div><div id="k_aii_companies" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Entreprises ESE</div><div id="k_ese_companies" class="value mono">–</div></div>
+      <div class="card kpi"><div class="label">Entreprises EME</div><div id="k_eme_companies" class="value mono">–</div></div>
+    </section>
+
+    <h2 class="section-title">Entreprises par parcours</h2>
+    <div id="groups" class="grid" style="grid-template-columns:1fr; gap:16px"></div>
+
+    <div class="footer">Une entreprise peut apparaître dans plusieurs parcours. Les totaux par parcours ne sont pas exclusifs.</div>
+  </main>
+
+  <script>
+    const PARCOURS = ["AII","ESE","EME"];
+    const el = (s)=>document.querySelector(s);
+    const fmt = (n)=>new Intl.NumberFormat('fr-FR').format(n);
+    const sanitize = (v)=>v==null?"":String(v).trim();
+    const toKey = (s)=>sanitize(s).toLowerCase();
+
+    function parseParcours(raw){
+      const s = sanitize(raw).toUpperCase();
+      if(!s) return new Set();
+      const parts = s.split(/[;,/|]+|\s+\+\s+|\s+/g).map(x=>x.trim()).filter(Boolean);
+      const set = new Set();
+      for(const p of parts){ if(PARCOURS.includes(p)) set.add(p); }
+      return set;
+    }
+    function isOui(v){
+      const s = toKey(v);
+      return ["oui","yes","y","1","true"].includes(s);
+    }
+
+    function detectPersonIndices(headers){
+      const idx = new Set();
+      for(const h of headers){
+        const s = String(h).toLowerCase();
+        let m = s.match(/personne\s*(\d+)\s*nom/);
+        if(m){ idx.add(parseInt(m[1],10)); continue; }
+        m = s.match(/^p\s*(\d+)[ _-]*nom$/);
+        if(m){ idx.add(parseInt(m[1],10)); continue; }
+        m = s.match(/^p(\d+)_nom$/);
+        if(m){ idx.add(parseInt(m[1],10)); continue; }
+      }
+      return Array.from(idx).sort((a,b)=>a-b);
+    }
+
+    function processData(rows){
+      if(!rows.length) return null;
+
+      const normalized = rows.map(r=>{ const o={}; for(const k in r){ o[toKey(k)] = r[k]; } return o; });
+      const headerKeys = Object.keys(normalized[0]);
+      const personIdx = detectPersonIndices(headerKeys);
+
+      const COL = {
+        date: ["date de creation","creation","date_creation"],
+        ent_name: ["nom entreprise","ent_nom","entreprise"],
+        ent_addr: ["adresse entreprise","ent_adresse","adresse"],
+        ent_cp: ["code postal entreprise","ent_cp","code postal","cp"],
+        ent_ville: ["ville entreprise","ent_ville","ville"],
+        ent_desc: ["description entreprise","ent_desc","description"],
+        ent_parcours: ["parcours"],
+        ent_nb: ["nombre de personne de l'entreprise","nb_p","nb personnes","nb_personnes"]
+      };
+
+      const getVal = (row, aliases)=>{
+        for(const a of aliases){ const k = toKey(a); if(Object.hasOwn(row,k) && row[k]!==undefined) return row[k]; }
+        return '';
+      };
+
+      const companies = [];
+      let totalPeople = 0;
+      let lunchYes = 0;
+      const peoplePerParcours = {AII:0,ESE:0,EME:0};
+      const companiesPerParcours = {AII:0,ESE:0,EME:0};
+      const groups = {AII:[],ESE:[],EME:[]};
+
+      const personField = (row, i, kinds)=>{
+        const tryKeys = [];
+        for(const k of kinds){
+          tryKeys.push(`personne ${i} ${k}`);
+          tryKeys.push(`p${i}_${k}`);
+          tryKeys.push(`p ${i} ${k}`);
+        }
+        for(const name of tryKeys){
+          const key = toKey(name);
+          if(Object.hasOwn(row, key)){ 
+            return sanitize(row[key]);}
+        }
+        return '';
+      };
+
+      for(const row of normalized){
+        const ent = {
+          nom: sanitize(getVal(row, COL.ent_name)),
+          adresse: sanitize(getVal(row, COL.ent_addr)),
+          cp: sanitize(getVal(row, COL.ent_cp)),
+          ville: sanitize(getVal(row, COL.ent_ville)),
+          description: sanitize(getVal(row, COL.ent_desc)),
+          parcours: parseParcours(getVal(row, COL.ent_parcours)),
+          nb_declares: Number(String(getVal(row, COL.ent_nb)||"").replace(/[^0-9]/g, "")) || 0,
+          personnes: []
+        };
+
+        for(const i of personIdx){
+          const nom = personField(row, i, ['nom']);
+          const prenom = personField(row, i, ['prenom','prénom']);
+          const email = personField(row, i, ['email','mail']);
+          const poste = personField(row, i, ['poste','fonction']);
+          const dej = personField(row, i, ['dejeuner','déjeuner','dej']);
+          const present = nom != "";
+          if(present){
+            const p = {nom, prenom, email, poste, dejeuner: dej};
+            ent.personnes.push(p);
+            totalPeople++;
+            if(isOui(dej)) lunchYes++;
+          }
+        }
+
+        companies.push(ent);
+        for(const pc of ent.parcours){
+          companiesPerParcours[pc]++;
+          groups[pc].push(ent);
+          peoplePerParcours[pc] += ent.personnes.length;
+        }
+      }
+
+      return { totalPeople, lunchYes, totalCompanies: companies.length, peoplePerParcours, companiesPerParcours, groups, companies };
+    }
+
+    function renderKPIs(t){
+      el('#k_total_people').textContent = fmt(t.totalPeople);
+      el('#k_lunch_yes').textContent = fmt(t.lunchYes);
+      el('#k_total_companies').textContent = fmt(t.totalCompanies);
+      el('#k_aii_people').textContent = fmt(t.peoplePerParcours.AII);
+      el('#k_ese_people').textContent = fmt(t.peoplePerParcours.ESE);
+      el('#k_eme_people').textContent = fmt(t.peoplePerParcours.EME);
+      el('#k_aii_companies').textContent = fmt(t.companiesPerParcours.AII);
+      el('#k_ese_companies').textContent = fmt(t.companiesPerParcours.ESE);
+      el('#k_eme_companies').textContent = fmt(t.companiesPerParcours.EME);
+    }
+
+    function createGroup(title, list){
+      const details = document.createElement('details');
+      details.className = 'group';
+      details.open = true;
+      const summary = document.createElement('summary');
+      summary.innerHTML = `<span>${title}</span><span class="pill mono">${fmt(list.length)} entreprise${list.length>1?'s':''}</span>`;
+      const wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
+      const table = document.createElement('table');
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Entreprise</th>
+            <th>Ville</th>
+            <th>Code postal</th>
+            <th>Adresse</th>
+            <th>Description</th>
+            <th>Personnes (déclarées)</th>
+            <th>Parcours</th>
+          </tr>
+        </thead>
+        <tbody></tbody>`;
+      const tbody = table.querySelector('tbody');
+      for(const ent of list){
+        const tr = document.createElement('tr');
+        const parcoursBadges = Array.from(ent.parcours).map(p=>`<span class="chip chip-${p.toLowerCase()}"><span class="chip-dot"></span>${p}</span>`).join(' ');
+        tr.innerHTML = `
+          <td><strong>${ent.nom||'—'}</strong></td>
+          <td>${ent.ville||'—'}</td>
+          <td class="mono">${ent.cp||'—'}</td>
+          <td>${ent.adresse||'—'}</td>
+          <td style="white-space:pre-wrap">${ent.description||'—'}</td>
+          <td class="mono">${ent.nb_declares||0}</td>
+          <td>${parcoursBadges||'—'}</td>`;
+        tbody.appendChild(tr);
+      }
+      wrap.appendChild(table);
+      details.appendChild(summary);
+      details.appendChild(wrap);
+      return details;
+    }
+
+    function renderGroups(t){
+      const host = el('#groups');
+      host.innerHTML = '';
+      host.appendChild(createGroup('AII', t.groups.AII));
+      host.appendChild(createGroup('ESE', t.groups.ESE));
+      host.appendChild(createGroup('EME', t.groups.EME));
+    }
+
+    const input = el('#fileInput');
+    const btnExport = el('#btnExport');
+    let lastTotals = null;
+
+    input.addEventListener('change', () => {
+      const file = input.files && input.files[0];
+      if(!file) return;
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: false,
+        transformHeader: (h) => h.replace(/^\uFEFF/, '').replace(/^"+|"+$/g,'').trim(),
+        complete: (res) => {
+          try{
+            const rows = res.data || [];
+            const totals = processData(rows);
+            if(!totals) throw new Error('Aucune donnée trouvée');
+            lastTotals = totals;
+            renderKPIs(totals);
+            renderGroups(totals);
+            btnExport.disabled = false;
+          }catch(err){
+            console.error(err);
+            alert('Erreur de traitement du CSV: '+ err.message);
+            btnExport.disabled = true;
+          }
+        },
+        error: (err) => alert('Erreur de lecture du fichier: '+ err.message)
+      });
+    });
+
+    function buildPeopleCSV(companies){
+      const rows = [["Nom","Prénom","Poste","Entreprise"]];
+      for(const ent of companies){
+        for(const p of ent.personnes){ rows.push([p.nom,p.prenom,p.poste,ent.nom].map(v=>v==null?"":String(v))); }
+      }
+      const csv = rows.map(r=>r.map(c=>{ const s=String(c); return /[";,\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(';')).join('\n');
+      return csv;
+    }
+    function triggerDownload(filename, content){
+      const blob = new Blob([content], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
+    btnExport.addEventListener('click', ()=>{
+      if(!lastTotals) return;
+      const csv = buildPeopleCSV(lastTotals.companies);
+      triggerDownload('personnes_export.csv', csv);
+    });
+  </script>
+</body>
+</html>

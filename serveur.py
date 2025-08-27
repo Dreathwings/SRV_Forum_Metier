@@ -45,6 +45,10 @@ def page_not_found(e):
 def form():
     return render_template('form.html')
 
+@app.route("/forum-metier/admin",methods=['GET'])
+def admin():
+    return render_template('admin.html')
+
 @app.route("/forum-metier/validate", methods=['POST'])
 def validate():
     print(request.form)
