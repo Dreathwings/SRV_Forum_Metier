@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tableau de bord inscriptions entreprises</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root{
       --bg:#0b1020; --panel:#121a33; --muted:#8a99b4; --text:#e6ecf7; --accent:#5b9bff; --good:#22c55e; --warn:#f59e0b; --border:#223052; --chip:#1a2447;
@@ -17,7 +16,6 @@
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
     h1{font-size:20px;margin:0 0 8px 0}
     .hint{color:var(--muted);font-size:12px}
-    input[type=file]{padding:10px 12px;border:1px dashed var(--border);border-radius:10px;background:#0a1228;color:var(--text)}
     button{border:1px solid var(--border);background:var(--chip);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .05s ease,background .2s ease;font-weight:600}
     button:hover{background:#23315d}
     button:active{transform:scale(.98)}
@@ -55,9 +53,8 @@
     <div class="wrap">
       <h1>Tableau de bord – Inscriptions entreprises</h1>
       <div class="row">
-        <input id="fileInput" type="file" accept=".csv" />
         <button id="btnExport" disabled>Exporter CSV personnes (Nom, Prénom, Poste, Entreprise)</button>
-        <span class="hint">Chargez <strong>dump.csv</strong>. Rien n’est envoyé hors du navigateur.</span>
+        <span class="hint">Données chargées côté serveur via Flask.</span>
       </div>
     </div>
   </header>
@@ -84,6 +81,11 @@
 
     <div class="footer">Une entreprise peut apparaître dans plusieurs parcours. Les totaux par parcours ne sont pas exclusifs.</div>
   </main>
+
+  <!-- Injection des données par Flask -->
+  <script>
+    window.DATA = {{ data | tojson }};
+  </script>
 
   <script>
     const PARCOURS = ["AII","ESE","EME"];
@@ -182,7 +184,9 @@
           const email = personField(row, i, ['email','mail']);
           const poste = personField(row, i, ['poste','fonction']);
           const dej = personField(row, i, ['dejeuner','déjeuner','dej']);
-          const present = nom != "";
+
+          // Compter une personne uniquement si au moins nom ET prénom sont présents
+          const present = nom !== "" && prenom !== "";
           if(present){
             const p = {nom, prenom, email, poste, dejeuner: dej};
             ent.personnes.push(p);
@@ -264,35 +268,23 @@
       host.appendChild(createGroup('EME', t.groups.EME));
     }
 
-    const input = el('#fileInput');
     const btnExport = el('#btnExport');
     let lastTotals = null;
 
-    input.addEventListener('change', () => {
-      const file = input.files && input.files[0];
-      if(!file) return;
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: false,
-        transformHeader: (h) => h.replace(/^\uFEFF/, '').replace(/^"+|"+$/g,'').trim(),
-        complete: (res) => {
-          try{
-            const rows = res.data || [];
-            const totals = processData(rows);
-            if(!totals) throw new Error('Aucune donnée trouvée');
-            lastTotals = totals;
-            renderKPIs(totals);
-            renderGroups(totals);
-            btnExport.disabled = false;
-          }catch(err){
-            console.error(err);
-            alert('Erreur de traitement du CSV: '+ err.message);
-            btnExport.disabled = true;
-          }
-        },
-        error: (err) => alert('Erreur de lecture du fichier: '+ err.message)
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+      try{
+        const rows = Array.isArray(window.DATA) ? window.DATA : [];
+        const totals = processData(rows);
+        if(!totals) throw new Error('Aucune donnée trouvée');
+        lastTotals = totals;
+        renderKPIs(totals);
+        renderGroups(totals);
+        btnExport.disabled = false;
+      }catch(err){
+        console.error(err);
+        alert('Erreur de traitement des données: ' + err.message);
+        btnExport.disabled = true;
+      }
     });
 
     function buildPeopleCSV(companies){
