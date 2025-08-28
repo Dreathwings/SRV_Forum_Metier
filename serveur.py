@@ -47,11 +47,15 @@ def form():
 
 @app.route("/forum-metier/admin",methods=['GET'])
 def admin():
-    return render_template('admin.html')
+    data = request.form
+    DB = connect_to_DB_forum_metier()
+    cur = DB.cursor()
+    data = cur.execute('SELECT * FROM `forum-metier`.DATA')
+    print(data)
+    return render_template('admin.html',data=data)
 
 @app.route("/forum-metier/validate", methods=['POST'])
 def validate():
-    print(request.form)
     data = request.form
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
