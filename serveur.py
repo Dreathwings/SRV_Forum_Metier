@@ -50,7 +50,7 @@ def admin():
     data = request.form
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
-    data = cur.execute('SELECT * FROM `forum-metier`.DATA')
+    data = cur.execute('SELECT * FROM `forum-metier`.`DATA`;')
     print(data)
     return render_template('admin.html',data=data)
 
