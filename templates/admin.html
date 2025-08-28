@@ -120,87 +120,71 @@
       return Array.from(idx).sort((a,b)=>a-b);
     }
 
+        // positions fixes des colonnes
+    const COLS = {
+      date: 0,
+      ent_name: 1,
+      ent_addr: 2,
+      ent_cp: 3,
+      ent_ville: 4,
+      ent_desc: 5,
+      parcours: 6,
+      nb: 7,
+      // ensuite blocs de 5 colonnes par personne
+      p1_nom: 8,
+      p1_prenom: 9,
+      p1_email: 10,
+      p1_poste: 11,
+      p1_dej: 12,
+      p2_nom: 13,
+      p2_prenom: 14,
+      p2_email: 15,
+      p2_poste: 16,
+      p2_dej: 17,
+      p3_nom: 18,
+      p3_prenom: 19,
+      p3_email: 20,
+      p3_poste: 21,
+      p3_dej: 22
+    };
+
     function processData(rows){
-      if(!rows.length) return null;
+      let totalPeople=0, lunchYes=0;
+      const peoplePerParcours={AII:0,ESE:0,EME:0};
+      const companiesPerParcours={AII:0,ESE:0,EME:0};
+      const groups={AII:[],ESE:[],EME:[]};
+      const companies=[];
 
-      const normalized = rows.map(r=>{ const o={}; for(const k in r){ o[toKey(k)] = r[k]; } return o; });
-      const headerKeys = Object.keys(normalized[0]);
-      const personIdx = detectPersonIndices(headerKeys);
-
-      const COL = {
-        date: ["date de creation","creation","date_creation"],
-        ent_name: ["nom entreprise","ent_nom","entreprise"],
-        ent_addr: ["adresse entreprise","ent_adresse","adresse"],
-        ent_cp: ["code postal entreprise","ent_cp","code postal","cp"],
-        ent_ville: ["ville entreprise","ent_ville","ville"],
-        ent_desc: ["description entreprise","ent_desc","description"],
-        ent_parcours: ["parcours"],
-        ent_nb: ["nombre de personne de l'entreprise","nb_p","nb personnes","nb_personnes"]
-      };
-
-      const getVal = (row, aliases)=>{
-        for(const a of aliases){ const k = toKey(a); if(Object.hasOwn(row,k) && row[k]!==undefined) return row[k]; }
-        return '';
-      };
-
-      const companies = [];
-      let totalPeople = 0;
-      let lunchYes = 0;
-      const peoplePerParcours = {AII:0,ESE:0,EME:0};
-      const companiesPerParcours = {AII:0,ESE:0,EME:0};
-      const groups = {AII:[],ESE:[],EME:[]};
-
-      const personField = (row, i, kinds)=>{
-        const tryKeys = [];
-        for(const k of kinds){
-          tryKeys.push(`personne ${i} ${k}`);
-          tryKeys.push(`p${i}_${k}`);
-          tryKeys.push(`p ${i} ${k}`);
-        }
-        for(const name of tryKeys){
-          const key = toKey(name);
-          if(Object.hasOwn(row, key)){ 
-            return sanitize(row[key]);}
-        }
-        return '';
-      };
-
-      for(const row of normalized){
+      for(const r of rows){
         const ent = {
-          nom: sanitize(getVal(row, COL.ent_name)),
-          adresse: sanitize(getVal(row, COL.ent_addr)),
-          cp: sanitize(getVal(row, COL.ent_cp)),
-          ville: sanitize(getVal(row, COL.ent_ville)),
-          description: sanitize(getVal(row, COL.ent_desc)),
-          parcours: parseParcours(getVal(row, COL.ent_parcours)),
-          nb_declares: Number(String(getVal(row, COL.ent_nb)||"").replace(/[^0-9]/g, "")) || 0,
-          personnes: []
+          nom: r[COLS.ent_name],
+          adresse: r[COLS.ent_addr],
+          cp: r[COLS.ent_cp],
+          ville: r[COLS.ent_ville],
+          description: r[COLS.ent_desc],
+          parcours: parseParcours(r[COLS.parcours]),
+          personnes:[]
         };
-
-        for(const i of personIdx){
-          const nom = personField(row, i, ['nom']);
-          const prenom = personField(row, i, ['prenom','prénom']);
-          const email = personField(row, i, ['email','mail']);
-          const poste = personField(row, i, ['poste','fonction']);
-          const dej = personField(row, i, ['dejeuner','déjeuner','dej']);
-          const present = nom != "";
-          if(present){
-            const p = {nom, prenom, email, poste, dejeuner: dej};
-            ent.personnes.push(p);
+        // 3 personnes
+        for(const base of [\"p1\",\"p2\",\"p3\"]){
+          const nom = r[COLS[base+\"_nom\"]];
+          const prenom = r[COLS[base+\"_prenom\"]];
+          if(nom && prenom){
+            const poste = r[COLS[base+\"_poste\"]];
+            const dej   = r[COLS[base+\"_dej\"]];
+            ent.personnes.push({nom, prenom, poste, dejeuner: dej});
             totalPeople++;
             if(isOui(dej)) lunchYes++;
           }
         }
-
         companies.push(ent);
-        for(const pc of ent.parcours){
-          companiesPerParcours[pc]++;
-          groups[pc].push(ent);
-          peoplePerParcours[pc] += ent.personnes.length;
+        for(const p of ent.parcours){
+          companiesPerParcours[p]++; 
+          peoplePerParcours[p]+=ent.personnes.length;
+          groups[p].push(ent);
         }
       }
-
-      return { totalPeople, lunchYes, totalCompanies: companies.length, peoplePerParcours, companiesPerParcours, groups, companies };
+      return {totalPeople,lunchYes,totalCompanies:companies.length,peoplePerParcours,companiesPerParcours,groups,companies};
     }
 
     function renderKPIs(t){
