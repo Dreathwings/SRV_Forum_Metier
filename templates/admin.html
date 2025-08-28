@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tableau de bord inscriptions entreprises</title>
   <style>
-    :root{
-      --bg:#0b1020; --panel:#121a33; --muted:#8a99b4; --text:#e6ecf7; --accent:#5b9bff; --good:#22c55e; --warn:#f59e0b; --border:#223052; --chip:#1a2447;
-    }
+    :root{--bg:#0b1020; --panel:#121a33; --muted:#8a99b4; --text:#e6ecf7; --accent:#5b9bff; --good:#22c55e; --warn:#f59e0b; --border:#223052; --chip:#1a2447}
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;background:linear-gradient(180deg,#0b1020,#0d1430 60%);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial}
@@ -23,7 +21,7 @@
     .grid{display:grid;gap:12px}
     .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
     @media(min-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
-    @media(min-width:1024px){.stats{grid-template-columns:repeat(3,1fr);padding: 12px;}}
+    @media(min-width:1024px){.stats{grid-template-columns:repeat(3,1fr);padding:12px}}
     .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
     .kpi{display:flex;flex-direction:column;gap:6px}
     .kpi .label{color:var(--muted);font-size:12px}
@@ -36,7 +34,6 @@
     .section-title{margin:24px 0 8px 0;font-size:16px}
     details.group{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--panel)}
     details.group>summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
-    details.group>summary::marker{display:none}
     details.group[open]>summary{border-bottom:1px solid var(--border)}
     .table-wrap{overflow:auto}
     table{width:100%;border-collapse:separate;border-spacing:0}
@@ -54,7 +51,7 @@
       <h1>Tableau de bord – Inscriptions entreprises</h1>
       <div class="row">
         <button id="btnExport" disabled>Exporter CSV personnes (Nom, Prénom, Poste, Entreprise)</button>
-        <span class="hint">Données chargées côté serveur via Flask.</span>
+        <span class="hint">Données chargées depuis le serveur. Rien n’est envoyé hors du navigateur.</span>
       </div>
     </div>
   </header>
@@ -82,9 +79,11 @@
     <div class="footer">Une entreprise peut apparaître dans plusieurs parcours. Les totaux par parcours ne sont pas exclusifs.</div>
   </main>
 
-  <!-- Injection des données par Flask -->
+  <!-- Flask injecte ici la liste d'objets (ex-lignes CSV) -->
   <script>
-    window.DATA = {{ data | tojson }};
+    // Exemple: dans votre template Jinja2
+    // window.SERVER_DATA = {{ data | tojson | safe }};
+    window.SERVER_DATA = window.SERVER_DATA || [];
   </script>
 
   <script>
@@ -184,9 +183,7 @@
           const email = personField(row, i, ['email','mail']);
           const poste = personField(row, i, ['poste','fonction']);
           const dej = personField(row, i, ['dejeuner','déjeuner','dej']);
-
-          // Compter une personne uniquement si au moins nom ET prénom sont présents
-          const present = nom !== "" && prenom !== "";
+          const present = nom != "";
           if(present){
             const p = {nom, prenom, email, poste, dejeuner: dej};
             ent.personnes.push(p);
@@ -271,9 +268,9 @@
     const btnExport = el('#btnExport');
     let lastTotals = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function boot(){
       try{
-        const rows = Array.isArray(window.DATA) ? window.DATA : [];
+        const rows = Array.isArray(window.SERVER_DATA) ? window.SERVER_DATA : [];
         const totals = processData(rows);
         if(!totals) throw new Error('Aucune donnée trouvée');
         lastTotals = totals;
@@ -282,10 +279,10 @@
         btnExport.disabled = false;
       }catch(err){
         console.error(err);
-        alert('Erreur de traitement des données: ' + err.message);
+        alert('Erreur de traitement des données: '+ err.message);
         btnExport.disabled = true;
       }
-    });
+    }
 
     function buildPeopleCSV(companies){
       const rows = [["Nom","Prénom","Poste","Entreprise"]];
@@ -306,6 +303,8 @@
       const csv = buildPeopleCSV(lastTotals.companies);
       triggerDownload('personnes_export.csv', csv);
     });
+
+    document.addEventListener('DOMContentLoaded', boot);
   </script>
 </body>
 </html>
