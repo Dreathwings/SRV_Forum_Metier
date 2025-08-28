@@ -52,7 +52,6 @@ def admin():
     cur = DB.cursor()
     cur.execute('SELECT * FROM `forum-metier`.`DATA`;')
     data = list(item for item in cur.fetchall())
-    print(data)
     return render_template('admin.html',data=data)
 
 @app.route("/forum-metier/validate", methods=['POST'])
