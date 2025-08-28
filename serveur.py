@@ -51,7 +51,7 @@ def admin():
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
     cur.execute('SELECT * FROM `forum-metier`.`DATA`;')
-    data = list(item[0] for item in cur.fetchall())
+    data = list(item for item in cur.fetchall())
     print(data)
     return render_template('admin.html',data=data)
 
