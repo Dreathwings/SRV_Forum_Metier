@@ -82,8 +82,8 @@
   <!-- Flask injecte ici la liste d'objets (ex-lignes CSV) -->
   <script>
     // Exemple: dans votre template Jinja2
-    // window.SERVER_DATA = {{ data | tojson | safe }};
-    window.SERVER_DATA = window.SERVER_DATA || [];
+    window.SERVER_DATA = {{ data | tojson | safe }};
+    "window.SERVER_DATA = window.SERVER_DATA || [];
   </script>
 
   <script>
