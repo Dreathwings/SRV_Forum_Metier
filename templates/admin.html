@@ -166,12 +166,12 @@
           personnes:[]
         };
         // 3 personnes
-        for(const base of [\"p1\",\"p2\",\"p3\"]){
-          const nom = r[COLS[base+\"_nom\"]];
-          const prenom = r[COLS[base+\"_prenom\"]];
+        for(const base of ["p1","p2","p3"]){
+          const nom = r[COLS[base+"_nom"]];
+          const prenom = r[COLS[base+"_prenom"]];
           if(nom && prenom){
-            const poste = r[COLS[base+\"_poste\"]];
-            const dej   = r[COLS[base+\"_dej\"]];
+            const poste = r[COLS[base+"_poste"]];
+            const dej   = r[COLS[base+"_dej"]];
             ent.personnes.push({nom, prenom, poste, dejeuner: dej});
             totalPeople++;
             if(isOui(dej)) lunchYes++;
