@@ -86,7 +86,25 @@
 
   .checks,.radios{display:flex; gap:22px; align-items:center; flex-wrap:wrap}
   .radio{display:flex; align-items:center; gap:8px; min-width:60px}
-  .radio input{width:18px; height:18px}
+  .radio input{width:18px; height:18px;
+    appearance: none;
+  width: 25px;
+  height: 25px;
+  border: 2px solid var(--blue);
+  border-radius: 50%;
+  background: #fff;
+    background-position-x: 0%;
+    background-position-y: 0%;
+    background-repeat: repeat;
+    background-size: auto;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0 0;
+  cursor: pointer;}
+  .radio input:checked {
+  background-image: radial-gradient(var(--brown) 0, var(--brown) 60%, transparent 75%);
+  background-size: 70% 70%;
+}
 
   /* Participants empilés */
   .participants{border:1px solid #000; border-radius:20px; padding:16px; background:#fff;}
@@ -234,17 +252,17 @@
             <label class="radio">
               <input id="parcours_aii" name="parcours_but" type="checkbox" value="AII" />
               <span>AII</span>
-              <a class="link-chip" href="https://www.iut.u-bordeaux.fr/geii/but-geii-parcours-aii" target="_blank" rel="noopener">Page AII</a>
+              <a class="link-chip" href="https://www.iut.u-bordeaux.fr/geii/but-parcours-aii" target="_blank" rel="noopener">Page AII</a>
             </label>
             <label class="radio">
               <input id="parcours_eme" name="parcours_but" type="checkbox" value="EME" />
               <span>EME</span>
-              <a class="link-chip" href="https://www.iut.u-bordeaux.fr/geii/but-geii-parcours-eme" target="_blank" rel="noopener">Page EME</a>
+              <a class="link-chip" href="https://www.iut.u-bordeaux.fr/geii/but-parcours-eme" target="_blank" rel="noopener">Page EME</a>
             </label>
             <label class="radio">
               <input id="parcours_ese" name="parcours_but" type="checkbox" value="ESE" />
               <span>ESE</span>
-              <a class="link-chip" href="https://www.iut.u-bordeaux.fr/geii/but-geii-parcours-ese" target="_blank" rel="noopener">Page ESE</a>
+              <a class="link-chip" href="https://www.iut.u-bordeaux.fr/geii/but-parcours-ese" target="_blank" rel="noopener">Page ESE</a>
             </label>
           </div>
         </div>
