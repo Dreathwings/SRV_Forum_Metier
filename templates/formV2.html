@@ -214,7 +214,7 @@
         <div class="row">
           <div class="col">
             <label for="entreprise_nom">Nom de l'Entreprise</label>
-            <input id="entreprise_nom" name="entreprise_nom" type="text" required/>
+            <input id="entreprise_nom" name="entreprise_nom" class="only-letters" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ]+$" type="text" required />
             <small class="field-error" data-for="entreprise_nom"></small>
           </div>
         </div>
@@ -222,7 +222,7 @@
         <div class="row addr-line">
           <div class="col col-50">
             <label for="entreprise_adresse">Adresse de l'Entreprise</label>
-            <input id="entreprise_adresse" name="entreprise_adresse" type="text" required/>
+            <input id="entreprise_adresse" name="entreprise_adresse" type="text" required class="only-letters" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ]+$"/>
             <small class="field-error" data-for="entreprise_adresse"></small>
           </div>
           <div class="col col-25">
@@ -286,12 +286,12 @@
               <div class="two">
                 <div class="col">
                   <label for="participant_nom__i__">Nom</label>
-                  <input id="participant_nom__i__" name="participants[__i__][nom]" type="text" required/>
+                  <input id="participant_nom__i__" name="participants[__i__][nom]" type="text" required class="only-letters" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ]+$"/>
                   <small class="field-error" data-for="participants[__i__][nom]"></small>
                 </div>
                 <div class="col">
                   <label for="participant_prenom__i__">Prénom</label>
-                  <input id="participant_prenom__i__" name="participants[__i__][prenom]" type="text" required/>
+                  <input id="participant_prenom__i__" name="participants[__i__][prenom]" type="text" required class="only-letters" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ]+$"/>
                   <small class="field-error" data-for="participants[__i__][prenom]"></small>
                 </div>
               </div>
@@ -299,12 +299,12 @@
               <div class="row">
                 <div class="col">
                   <label for="participant_email__i__">Adresse mail</label>
-                  <input id="participant_email__i__" name="participants[__i__][email]" type="email" required/>
+                  <input id="participant_email__i__" class="check-email" name="participants[__i__][email]" type="email" inputmode="email" autocomplete="email" required pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"/>
                   <small class="field-error" data-for="participants[__i__][email]"></small>
                 </div>
                 <div class="col" style="max-width:320px">
                   <label for="participant_poste__i__">Poste actuel</label>
-                  <input id="participant_poste__i__" name="participants[__i__][poste]" type="text" required/>
+                  <input id="participant_poste__i__" name="participants[__i__][poste]" type="text" required class="only-letters" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ]+$"/>
                   <small class="field-error" data-for="participants[__i__][poste]"></small>
                 </div>
               </div>
@@ -550,6 +550,9 @@ Fax&nbsp;: 05&nbsp;56&nbsp;84&nbsp;57&nbsp;83
       setFieldError('ville', 'Ville requise');
       missing.push('Ville');
     }
+    if (!document.querySelectorAll('input[name="parcours_but"]:checked').length > 0) {
+      missing.push("Parcours");
+    }
 
     // Participants 1..N
     const count = getCount();
@@ -573,6 +576,9 @@ Fax&nbsp;: 05&nbsp;56&nbsp;84&nbsp;57&nbsp;83
     if(missing.length){
       errorSummary.innerHTML = '<strong>Veuillez compléter les champs suivants :</strong><br>' + missing.map(m=>'- '+m).join('<br>');
       errorSummary.style.display='block';
+      errorSummary.setAttribute('tabindex','-1'); // au cas où
+      errorSummary.focus();
+      errorSummary.scrollIntoView({behavior:'smooth', block:'start'});
       return false;
     }
     return true;
@@ -621,6 +627,96 @@ Fax&nbsp;: 05&nbsp;56&nbsp;84&nbsp;57&nbsp;83
     // Envoi final
     review.style.display='none';
     form.submit();
+  });
+})();
+</script>
+<script>
+(() => {
+  // Unicode: ne garde que les lettres
+  const stripNonLetters = s => s.normalize('NFC').replace(/[^\p{L}]+/gu, "");
+
+  // Bloque dès la frappe
+  document.addEventListener('beforeinput', (e) => {
+    if (!e.target.matches('.only-letters')) return;
+    if (e.inputType.startsWith('insert') && e.data && /[^\p{L}]/u.test(e.data)) {
+      e.preventDefault();
+    }
+  });
+
+  // Gère le collage
+  document.querySelectorAll('.only-letters').forEach((el) => {
+    el.addEventListener('paste', (e) => {
+      const t = (e.clipboardData || window.clipboardData).getData('text');
+      const cleaned = stripNonLetters(t);
+      if (cleaned !== t) {
+        e.preventDefault();
+        const { selectionStart:s, selectionEnd:eEnd } = el;
+        el.setRangeText(cleaned, s, eEnd, 'end');
+      }
+    });
+    // Filet de sécurité
+    el.addEventListener('input', () => {
+      const v = el.value;
+      const c = stripNonLetters(v);
+      if (v !== c) {
+        const d = v.length - c.length;
+        el.value = c;
+        if (el.setSelectionRange) {
+          const p = Math.max((el.selectionStart||c.length) - d, 0);
+          el.setSelectionRange(p, p);
+        }
+      }
+    });
+  });
+
+  // Empêche l’envoi si un champ n’est pas conforme (pattern HTML5)
+  const form = document.querySelector('form');
+  if (form) form.addEventListener('submit', (e) => {
+    if (!form.checkValidity()) {
+      e.preventDefault();
+      form.reportValidity();
+    }
+  });
+})();
+
+(() => {
+  // Trim et bloque les espaces
+  document.addEventListener('input', (e) => {
+    if (!e.target.matches('.check-email')) return;
+    const v = e.target.value.replace(/\s+/g,'');
+    if (e.target.value !== v) e.target.value = v;
+  });
+
+  // Message d'erreur clair avec Constraint Validation API
+  function validateEmail(el){
+    el.setCustomValidity('');
+    if (el.validity.valueMissing) {
+      el.setCustomValidity('Adresse email requise');
+    } else if (el.validity.typeMismatch || el.validity.patternMismatch) {
+      el.setCustomValidity('Adresse email invalide (ex. nom@domaine.tld)');
+    }
+  }
+
+  document.querySelectorAll('.check-email').forEach(el => {
+    ['blur','input','change'].forEach(ev => el.addEventListener(ev, () => {
+      validateEmail(el);
+      // Affiche la bulle native si invalide après interaction
+      if (!el.checkValidity()) el.reportValidity();
+    }));
+  });
+
+  // Barrière à l’envoi pour tout le formulaire
+  const form = document.querySelector('form');
+  if (form) form.addEventListener('submit', (e) => {
+    let ok = true;
+    form.querySelectorAll('.check-email').forEach(el => {
+      validateEmail(el);
+      ok = el.checkValidity() && ok;
+    });
+    if (!ok || !form.checkValidity()) {
+      e.preventDefault();
+      form.reportValidity();
+    }
   });
 })();
 </script>
