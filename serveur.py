@@ -43,7 +43,7 @@ def page_not_found(e):
 
 @app.route("/forum-metier",methods=['GET'])
 def form():
-    return render_template('formV2.html')
+    return render_template('formV3.html')
 
 @app.route("/forum-metier/admin",methods=['GET'])
 def admin():
