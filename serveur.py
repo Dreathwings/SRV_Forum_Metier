@@ -97,7 +97,14 @@ def admin_generate_badges_zip():
     archive_io = BytesIO()
     with zipfile.ZipFile(archive_io, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for index, participant in enumerate(participants, start=1):
-            svg_bytes = render_badge_svg(template_root, participant)
+            svg_bytes = render_badge_svg(
+                template_root,
+                participant,
+                # Les recherches de logos en ligne peuvent ralentir fortement
+                # la génération côté serveur et entraîner un "proxy error".
+                # On se limite donc aux logos locaux pour cette route.
+                allow_online_logo_lookup=False,
+            )
             archive.writestr(f"{badge_basename(participant, index)}.svg", svg_bytes)
 
     archive_io.seek(0)
