@@ -1,5 +1,21 @@
-from flask import Flask, abort, redirect, render_template, request, session, url_for,jsonify
+from flask import (
+    Flask,
+    abort,
+    redirect,
+    render_template,
+    request,
+    session,
+    send_file,
+    url_for,
+    jsonify,
+)
 import mariadb
+import zipfile
+from io import BytesIO
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+from generate_badges import badge_basename, extract_participants, render_badge_svg
 app = Flask('forum-metier',static_url_path='/forum-metier/static/')
 app.secret_key='CECIESTLACLEFSECRETDEGEII'
 app.config.update(TEMPLATES_AUTO_RELOAD=True)
@@ -53,6 +69,44 @@ def admin():
     cur.execute('SELECT * FROM `forum-metier`.`DATA`;')
     data = list(item for item in cur.fetchall())
     return render_template('admin.html',data=data)
+
+
+@app.route("/forum-metier/admin/badges", methods=['POST'])
+def admin_generate_badges_zip():
+    DB = connect_to_DB_forum_metier()
+    cur = DB.cursor()
+    try:
+        cur.execute('SELECT * FROM `forum-metier`.`DATA`;')
+        rows = cur.fetchall()
+        columns = [column[0] for column in cur.description]
+    finally:
+        cur.close()
+        DB.close()
+
+    records = [dict(zip(columns, row)) for row in rows]
+    participants = extract_participants(records)
+    if not participants:
+        abort(404, description="Aucun participant n'a été trouvé pour générer les badges.")
+
+    template_path = Path(__file__).resolve().parent / "static/ressources/badge_template.svg"
+    if not template_path.exists():
+        abort(500, description="Le template de badge est introuvable sur le serveur.")
+
+    template_root = ET.parse(template_path).getroot()
+
+    archive_io = BytesIO()
+    with zipfile.ZipFile(archive_io, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for index, participant in enumerate(participants, start=1):
+            svg_bytes = render_badge_svg(template_root, participant)
+            archive.writestr(f"{badge_basename(participant, index)}.svg", svg_bytes)
+
+    archive_io.seek(0)
+    return send_file(
+        archive_io,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name="badges_svg.zip",
+    )
 
 @app.route("/forum-metier/validate", methods=['POST'])
 def validate():
