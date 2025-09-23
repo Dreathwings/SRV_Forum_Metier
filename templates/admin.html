@@ -51,7 +51,7 @@
       <h1>Tableau de bord – Inscriptions entreprises</h1>
       <div class="row">
         <button id="btnExport" disabled>Exporter CSV personnes (Nom, Prénom, Poste, Entreprise)</button>
-        <span class="hint">Données chargées depuis le serveur. Rien n’est envoyé hors du navigateur.</span>
+        <button id="btnExportFull" disabled>Exporter CSV Complet (Trier par personnes)</button>
       </div>
     </div>
   </header>
@@ -250,6 +250,7 @@
     }
 
     const btnExport = el('#btnExport');
+    const btnExportFull = el('#btnExportFull');
     let lastTotals = null;
 
     function boot(){
@@ -286,6 +287,40 @@
       if(!lastTotals) return;
       const csv = buildPeopleCSV(lastTotals.companies);
       triggerDownload('personnes_export.csv', csv);
+    });
+    // helper réutilisable
+    function csvString(rows){
+      return rows
+        .map(r => r.map(c => {
+          const s = c==null ? "" : String(c);
+          return /[";,\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+        }).join(';'))
+        .join('\n');
+    }
+    
+    // CSV complet personnes depuis les lignes brutes (SERVER_DATA)
+    function buildAllPeopleCSVFromRaw(rows){
+      const out = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
+      for(const r of rows){
+        const ent = sanitize(r[COLS.ent_name]);
+        for(const base of ["p1","p2","p3"]){
+          const nom    = sanitize(r[COLS[base+"_nom"]]);
+          const prenom = sanitize(r[COLS[base+"_prenom"]]);
+          if(!nom || !prenom) continue; // ignore entrées incomplètes
+          const poste  = sanitize(r[COLS[base+"_poste"]]);
+          const email  = sanitize(r[COLS[base+"_email"]]);
+          const dej    = sanitize(r[COLS[base+"_dej"]]);
+          out.push([nom, prenom, poste, email, ent, dej]);
+        }
+      }
+      return csvString(out);
+    }
+    
+    // branchement du bouton "CSV Complet"
+    btnExportFull.addEventListener('click', ()=>{
+      const rows = Array.isArray(SERVER_DATA) ? SERVER_DATA : [];
+      const csv = buildAllPeopleCSVFromRaw(rows);
+      triggerDownload('personnes_complet.csv', csv);
     });
 
     document.addEventListener('DOMContentLoaded', boot);
