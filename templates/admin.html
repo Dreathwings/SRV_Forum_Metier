@@ -289,17 +289,24 @@
       const csv = buildPeopleCSV(lastTotals.companies);
       triggerDownload('personnes_export.csv', csv);
     });
-    // helper réutilisable
-    function csvString(rows){
-      return rows
-        .map(r => r.map(c => {
-          const s = c==null ? "" : String(c);
-          return /[";,\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
-        }).join(';'))
-        .join('\n');
+    // Normalise et échappe une cellule
+    function cell(v){
+      const s = (v==null ? "" : String(v)).normalize('NFC');
+      return /[";\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
     }
-
-    // CSV complet personnes depuis les lignes brutes (SERVER_DATA)
+    
+    // Construit un CSV ; ajoute "sep=;" pour Excel
+    function csvString(rows){
+      const lines = [];
+      lines.push('sep=;'); // aide Excel
+      for(const r of rows){
+        lines.push(r.map(cell).join(';'));
+      }
+      // CRLF pour Excel
+      return lines.join('\r\n');
+    }
+    
+    // CSV complet personnes depuis SERVER_DATA
     function buildAllPeopleCSVFromRaw(rows){
       const out = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
       for(const r of rows){
@@ -307,7 +314,7 @@
         for(const base of ["p1","p2","p3"]){
           const nom    = sanitize(r[COLS[base+"_nom"]]);
           const prenom = sanitize(r[COLS[base+"_prenom"]]);
-          if(!nom || !prenom) continue; // ignore entrées incomplètes
+          if(!nom || !prenom) continue;
           const poste  = sanitize(r[COLS[base+"_poste"]]);
           const email  = sanitize(r[COLS[base+"_email"]]);
           const dej    = sanitize(r[COLS[base+"_dej"]]);
@@ -316,8 +323,18 @@
       }
       return csvString(out);
     }
-
-    // branchement du bouton "CSV Complet"
+    
+    // Téléchargement avec BOM UTF-8
+    function triggerDownload(filename, content){
+      const bom = '\uFEFF'; // BOM pour Excel
+      const blob = new Blob([bom + content], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download=filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
+    
+    // Bouton "CSV Complet"
     btnExportFull.addEventListener('click', ()=>{
       const rows = Array.isArray(SERVER_DATA) ? SERVER_DATA : [];
       const csv = buildAllPeopleCSVFromRaw(rows);
