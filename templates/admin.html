@@ -12,6 +12,7 @@
     header{position:sticky;top:0;z-index:10;backdrop-filter:saturate(1.2) blur(6px);background:rgba(11,16,32,.75);border-bottom:1px solid var(--border)}
     .wrap{max-width:1200px;margin:0 auto;padding:16px}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .row form{margin:0}
     h1{font-size:20px;margin:0 0 8px 0}
     .hint{color:var(--muted);font-size:12px}
     button{border:1px solid var(--border);background:var(--chip);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .05s ease,background .2s ease;font-weight:600}
@@ -52,6 +53,9 @@
       <div class="row">
         <button id="btnExport" disabled>Exporter CSV personnes (Nom, Prénom, Poste, Entreprise)</button>
         <button id="btnExportFull" disabled>Exporter CSV Complet (Trier par personnes)</button>
+        <form method="post" action="{{ url_for('admin_generate_badges_zip') }}">
+          <button type="submit">Télécharger les badges (ZIP)</button>
+        </form>
       </div>
     </div>
   </header>
