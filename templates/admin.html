@@ -262,6 +262,7 @@
         renderKPIs(totals);
         renderGroups(totals);
         btnExport.disabled = false;
+        btnExportFull.disabled = false;
       }catch(err){
         console.error(err);
         alert('Erreur de traitement des données: '+ err.message);
@@ -297,7 +298,7 @@
         }).join(';'))
         .join('\n');
     }
-    
+
     // CSV complet personnes depuis les lignes brutes (SERVER_DATA)
     function buildAllPeopleCSVFromRaw(rows){
       const out = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
@@ -315,7 +316,7 @@
       }
       return csvString(out);
     }
-    
+
     // branchement du bouton "CSV Complet"
     btnExportFull.addEventListener('click', ()=>{
       const rows = Array.isArray(SERVER_DATA) ? SERVER_DATA : [];
