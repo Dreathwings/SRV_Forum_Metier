@@ -290,56 +290,51 @@
       triggerDownload('personnes_export.csv', csv);
     });
     // Normalise et échappe une cellule
-    function cell(v){
-      const s = (v==null ? "" : String(v)).normalize('NFC');
-      return /[";\n\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+    // Normalise et échappe une cellule
+const cell = v => {
+  const s = (v == null ? "" : String(v)).normalize("NFC");
+  return /[";\n\r]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+};
+
+// Construit le CSV (séparateur ;, ligne "sep=;", CRLF)
+const csvString = rows => [
+  "sep=;",
+  ...rows.map(r => r.map(cell).join(";"))
+].join("\r\n");
+
+// Déclenche le téléchargement avec BOM UTF-8
+function downloadCSV(filename, rows){
+  const csv = csvString(rows);
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement("a"), { href:url, download:filename });
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+}
+
+// Exemple d’usage avec vos données SERVER_DATA
+function exportPeopleFull(){
+  const rows = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
+  for(const r of (Array.isArray(SERVER_DATA)? SERVER_DATA : [])){
+    const ent = (r[COLS.ent_name] ?? "").toString();
+    for(const base of ["p1","p2","p3"]){
+      const nom    = r[COLS[base+"_nom"]];
+      const prenom = r[COLS[base+"_prenom"]];
+      if(!nom || !prenom) continue;
+      rows.push([
+        nom, prenom,
+        r[COLS[base+"_poste"]],
+        r[COLS[base+"_email"]],
+        ent,
+        r[COLS[base+"_dej"]]
+      ]);
     }
-    
-    // Construit un CSV ; ajoute "sep=;" pour Excel
-    function csvString(rows){
-      const lines = [];
-      lines.push('sep=;'); // aide Excel
-      for(const r of rows){
-        lines.push(r.map(cell).join(';'));
-      }
-      // CRLF pour Excel
-      return lines.join('\r\n');
-    }
-    
-    // CSV complet personnes depuis SERVER_DATA
-    function buildAllPeopleCSVFromRaw(rows){
-      const out = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
-      for(const r of rows){
-        const ent = sanitize(r[COLS.ent_name]);
-        for(const base of ["p1","p2","p3"]){
-          const nom    = sanitize(r[COLS[base+"_nom"]]);
-          const prenom = sanitize(r[COLS[base+"_prenom"]]);
-          if(!nom || !prenom) continue;
-          const poste  = sanitize(r[COLS[base+"_poste"]]);
-          const email  = sanitize(r[COLS[base+"_email"]]);
-          const dej    = sanitize(r[COLS[base+"_dej"]]);
-          out.push([nom, prenom, poste, email, ent, dej]);
-        }
-      }
-      return csvString(out);
-    }
-    
-    // Téléchargement avec BOM UTF-8
-    function triggerDownload(filename, content){
-      const bom = '\uFEFF'; // BOM pour Excel
-      const blob = new Blob([bom + content], {type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=filename;
-      document.body.appendChild(a); a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
-    }
-    
-    // Bouton "CSV Complet"
-    btnExportFull.addEventListener('click', ()=>{
-      const rows = Array.isArray(SERVER_DATA) ? SERVER_DATA : [];
-      const csv = buildAllPeopleCSVFromRaw(rows);
-      triggerDownload('personnes_complet.csv', csv);
-    });
+  }
+  downloadCSV("personnes_complet.csv", rows);
+}
+
+// Brancher sur votre bouton
+btnExportFull.addEventListener("click", exportPeopleFull);
 
     document.addEventListener('DOMContentLoaded', boot);
   </script>
