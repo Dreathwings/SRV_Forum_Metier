@@ -25,12 +25,17 @@ d'identification individuels à partir d'un template SVG.
 
 Le fichier `static/ressources/badge_template.svg` sert de base à chaque badge.
 Il contient des éléments texte avec des identifiants (`id="company"`,
+
 `id="full_name"`, `id="role"`, `id="email"`). Deux zones `image` sont
 pré-configurées : `id="logo_geii"` pour le logo du département et
 `id="company_logo"` pour le logo de l'entreprise.
+=======
+`id="full_name"`, `id="role"`, `id="email"`).
+
 
 * Modifiez le style ou la disposition directement dans le fichier SVG.
 * Laissez intacts les attributs `id` des éléments que le script doit remplir.
+
 
 ### Ajouter les logos d'entreprise
 
@@ -56,6 +61,8 @@ logo depuis `https://logo.clearbit.com/`. Cette étape nécessite un accès rés
 sortant ; en cas d'échec, la zone de logo reste vide. Utilisez l'option
 `--no-online-logos` si vous souhaitez désactiver complètement cette recherche.
 
+=======
+
 ### Générer les badges
 
 ```bash
@@ -67,6 +74,7 @@ L'exemple ci-dessus crée un badge par participant dans le dossier
 `generated_badges/`. Les fichiers sont nommés avec un index et le nom du
 participant (`001_Dupont_Jeanne.svg`, etc.).
 
+
 Si vos logos sont stockés dans un autre dossier, ajoutez l'argument
 `--logo-dirs` :
 
@@ -75,6 +83,8 @@ python generate_badges.py dump.csv static/ressources/badge_template.svg \
     --output generated_badges --formats svg \
     --logo-dirs /chemin/vers/mes/logos
 ```
+
+=======
 
 Pour exporter également des PDF ou des PNG (nécessite `cairosvg`) :
 
