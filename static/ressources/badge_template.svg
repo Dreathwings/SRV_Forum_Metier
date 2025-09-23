@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
     xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
     version="1.1"
     width="352"
     height="212"
@@ -16,9 +17,11 @@
     ]]></style>
   </defs>
   <rect class="badge-background" x="8" y="8" width="336" height="196" rx="18" ry="18" />
-  <rect class="banner" x="8" y="8" width="336" height="42" rx="18" ry="18" />
-  <text id="company" class="company" x="176" y="37">Votre entreprise</text>
-  <text id="full_name" class="name" x="176" y="112">Nom Prénom</text>
-  <text id="role" class="role" x="176" y="148">Poste actuel</text>
-  <text id="email" class="email" x="176" y="178">prenom.nom@example.com</text>
+  <rect class="banner" x="8" y="8" width="336" height="72" rx="18" ry="18" />
+  <image id="logo_geii" x="24" y="20" width="88" height="40" preserveAspectRatio="xMidYMid meet" visibility="hidden" />
+  <image id="company_logo" x="240" y="20" width="88" height="40" preserveAspectRatio="xMidYMid meet" visibility="hidden" />
+  <text id="company" class="company" x="176" y="78">Votre entreprise</text>
+  <text id="full_name" class="name" x="176" y="136">Nom Prénom</text>
+  <text id="role" class="role" x="176" y="172">Poste actuel</text>
+  <text id="email" class="email" x="176" y="198">prenom.nom@example.com</text>
 </svg>
