@@ -25,8 +25,8 @@ def connect_to_DB_forum_metier():
         DB = mariadb.connect(host="localhost",
                             port=3306,
                             user="warren",
-                            password="EPKdVcgcaBYh2l*b",
-                            database="forum-metier",
+                            password="cultiver-TAPEZ-mijote-68594-infirmes-tigre-aditya",
+                            database="forummetier",
                             autocommit=True)
         DB.autocommit = True
         return DB
@@ -38,7 +38,7 @@ def connect_to_DB_cas():
         DB = mariadb.connect(host="localhost",
                             port=3306,
                             user="warren",
-                            password="EPKdVcgcaBYh2l*b",
+                            password="cultiver-TAPEZ-mijote-68594-infirmes-tigre-aditya",
                             database="db_cas",
                             autocommit=True)
         DB.autocommit = True
@@ -149,4 +149,4 @@ def validate():
 # Running the API
 if __name__ == "__main__":
     with app.app_context():
-        app.run(,host="172.16.10.36",port=6970,debug=True)
+        app.run(host="172.16.10.36",port=6970,debug=True)
