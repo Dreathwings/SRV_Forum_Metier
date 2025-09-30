@@ -59,8 +59,10 @@ def oauth():
                 resp = flask.make_response(redirect("/forum-metier/admin"))  
                 resp.set_cookie("SESSID", value = SESSID)
 
-                ##print(f"USER {id} authorized with {status} authority")
-            else:return abort(403)
+                print(f"USER {id} authorized with {status} authority")
+            else:
+                print('Degage')
+                return abort(403)
                 
             return resp
         else:
