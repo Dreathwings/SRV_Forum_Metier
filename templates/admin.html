@@ -12,6 +12,7 @@
     header{position:sticky;top:0;z-index:10;backdrop-filter:saturate(1.2) blur(6px);background:rgba(11,16,32,.75);border-bottom:1px solid var(--border)}
     .wrap{max-width:1200px;margin:0 auto;padding:16px}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .row form{margin:0}
     h1{font-size:20px;margin:0 0 8px 0}
     .hint{color:var(--muted);font-size:12px}
     button{border:1px solid var(--border);background:var(--chip);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .05s ease,background .2s ease;font-weight:600}
@@ -52,6 +53,9 @@
       <div class="row">
         <button id="btnExport" disabled>Exporter CSV personnes (Nom, Prénom, Poste, Entreprise)</button>
         <button id="btnExportFull" disabled>Exporter CSV Complet (Trier par personnes)</button>
+        <form method="post" action="{{ url_for('admin_generate_badges_zip') }}">
+          <button type="submit">Télécharger les badges (ZIP)</button>
+        </form>
       </div>
     </div>
   </header>
@@ -172,7 +176,8 @@
           if(nom && prenom){
             const poste = r[COLS[base+"_poste"]];
             const dej   = r[COLS[base+"_dej"]];
-            ent.personnes.push({nom, prenom, poste, dejeuner: dej});
+            const email = r[COLS[base+"_email"]];
+            ent.personnes.push({nom, prenom, poste, email, dejeuner: dej});
             totalPeople++;
             if(isOui(dej)) lunchYes++;
           }
@@ -253,6 +258,28 @@
     const btnExportFull = el('#btnExportFull');
     let lastTotals = null;
 
+    // Normalise et échappe une cellule
+    const cell = v => {
+      const s = (v == null ? "" : String(v)).normalize("NFC");
+      return /[";\n\r]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+    };
+
+    // Construit le CSV (séparateur ;, ligne "sep=;", CRLF)
+    const csvString = rows => [
+      "sep=;",
+      ...rows.map(r => r.map(cell).join(";"))
+    ].join("\r\n");
+
+    // Déclenche le téléchargement avec BOM UTF-8
+    function downloadCSV(filename, rows){
+      const csv = csvString(rows);
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), { href:url, download:filename });
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
+
     function boot(){
       try{
         const rows = Array.isArray(SERVER_DATA) ? SERVER_DATA : [];
@@ -270,71 +297,30 @@
       }
     }
 
-    function buildPeopleCSV(companies){
-      const rows = [["Nom","Prénom","Poste","Entreprise"]];
-      for(const ent of companies){
-        for(const p of ent.personnes){ rows.push([p.nom,p.prenom,p.poste,ent.nom].map(v=>v==null?"":String(v))); }
-      }
-      const csv = rows.map(r=>r.map(c=>{ const s=String(c); return /[";,\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(';')).join('\n');
-      return csv;
-    }
-    function triggerDownload(filename, content){
-      const blob = new Blob([content], {type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
-    }
-    btnExport.addEventListener('click', ()=>{
+    function exportPeopleBasic(){
       if(!lastTotals) return;
-      const csv = buildPeopleCSV(lastTotals.companies);
-      triggerDownload('personnes_export.csv', csv);
-    });
-    // Normalise et échappe une cellule
-    // Normalise et échappe une cellule
-const cell = v => {
-  const s = (v == null ? "" : String(v)).normalize("NFC");
-  return /[";\n\r]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
-};
-
-// Construit le CSV (séparateur ;, ligne "sep=;", CRLF)
-const csvString = rows => [
-  "sep=;",
-  ...rows.map(r => r.map(cell).join(";"))
-].join("\r\n");
-
-// Déclenche le téléchargement avec BOM UTF-8
-function downloadCSV(filename, rows){
-  const csv = csvString(rows);
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement("a"), { href:url, download:filename });
-  document.body.appendChild(a); a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
-}
-
-// Exemple d’usage avec vos données SERVER_DATA
-function exportPeopleFull(){
-  const rows = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
-  for(const r of (Array.isArray(SERVER_DATA)? SERVER_DATA : [])){
-    const ent = (r[COLS.ent_name] ?? "").toString();
-    for(const base of ["p1","p2","p3"]){
-      const nom    = r[COLS[base+"_nom"]];
-      const prenom = r[COLS[base+"_prenom"]];
-      if(!nom || !prenom) continue;
-      rows.push([
-        nom, prenom,
-        r[COLS[base+"_poste"]],
-        r[COLS[base+"_email"]],
-        ent,
-        r[COLS[base+"_dej"]]
-      ]);
+      const rows = [["Nom","Prénom","Poste","Entreprise"]];
+      for(const ent of lastTotals.companies){
+        for(const p of ent.personnes){
+          rows.push([p.nom, p.prenom, p.poste, ent.nom]);
+        }
+      }
+      downloadCSV('personnes_export.csv', rows);
     }
-  }
-  downloadCSV("personnes_complet.csv", rows);
-}
 
-// Brancher sur votre bouton
-btnExportFull.addEventListener("click", exportPeopleFull);
+    function exportPeopleFull(){
+      if(!lastTotals) return;
+      const rows = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
+      for(const ent of lastTotals.companies){
+        for(const p of ent.personnes){
+          rows.push([p.nom, p.prenom, p.poste, p.email, ent.nom, p.dejeuner]);
+        }
+      }
+      downloadCSV('personnes_complet.csv', rows);
+    }
+
+    btnExport.addEventListener('click', exportPeopleBasic);
+    btnExportFull.addEventListener('click', exportPeopleFull);
 
     document.addEventListener('DOMContentLoaded', boot);
   </script>
