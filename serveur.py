@@ -58,13 +58,13 @@ def oauth():
                 ##print(oauth_user[SESSID])
                 resp = flask.make_response(redirect("/geii/forum-metier/admin"))  
                 resp.set_cookie("SESSID", value = SESSID)
-
                 print(f"USER {id} authorized with {status} authority")
+                return resp
             else:
                 print('Degage')
                 return abort(403)
                 
-            return resp
+            
         else:
             return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=https://www.iut.u-bordeaux.fr/geii/forum-metier/oauth")
     else:
