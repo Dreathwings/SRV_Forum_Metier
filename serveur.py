@@ -40,7 +40,7 @@ def oauth():
             DB = connect_to_DB_forum_metier()
             
             cur = DB.cursor()
-            cur.execute(f"SELECT CAS_ID FROM ADMIN WHERE login = '{id}' ")
+            cur.execute(f"SELECT CAS_ID FROM ADMIN WHERE CAS_ID = '{id}' ")
             login = str(cur.fetchone()[0])
             
             ##print(f" {DB.user} | Login {data}")
