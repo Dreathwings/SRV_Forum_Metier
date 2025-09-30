@@ -62,9 +62,9 @@ def oauth():
                 
             return resp
         else:
-            return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/geii/forum-metier/oauth")
+            return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://https://www.iut.u-bordeaux.fr/geii/forum-metier/oauth")
     else:
-        return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/geii/forum-metier/oauth")
+        return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://https://www.iut.u-bordeaux.fr/geii/forum-metier/oauth")
 
 def connect_to_DB_forum_metier():
     try:
