@@ -29,7 +29,7 @@ CAS = True
 def oauth():
     if 'ticket' in request.values:
         PARAMS = {"ticket":request.values['ticket'],
-                  'service':f"http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/forum-metier/oauth"}
+                  'service':f"http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/geii/forum-metier/oauth"}
         
         
 
@@ -62,9 +62,9 @@ def oauth():
                 
             return resp
         else:
-            return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/mission/oauth")
+            return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/geii/forum-metier/oauth")
     else:
-        return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/mission/oauth")
+        return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/geii/forum-metier/oauth")
 
 def connect_to_DB_forum_metier():
     try:
