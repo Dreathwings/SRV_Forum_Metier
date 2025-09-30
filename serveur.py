@@ -16,7 +16,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 from generate_badges import badge_basename, extract_participants, render_badge_svg
-app = Flask('forum-metier',static_url_path='/forum-metier/static/',host=172.16.10.36)
+app = Flask('forum-metier',static_url_path='/forum-metier/static/',host="172.16.10.36")
 app.secret_key='CECIESTLACLEFSECRETDEGEII'
 app.config.update(TEMPLATES_AUTO_RELOAD=True)
 
