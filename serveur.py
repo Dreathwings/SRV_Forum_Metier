@@ -25,7 +25,7 @@ admin_user = {"wprivat":"ADMIN",
               "vgalland":"GESTION"}
 ### Activate CAS oauth ###
 CAS = True
-@app.route("/forum-metier/oauth/")
+@app.route("/forum-metier/oauth")
 def oauth():
     if 'ticket' in request.values:
         PARAMS = {"ticket":request.values['ticket'],
