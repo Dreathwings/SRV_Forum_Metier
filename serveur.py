@@ -56,7 +56,7 @@ def oauth():
                 status = admin_user.get(id,"BASIC")
                 oauth_user[SESSID] = [id,login,status]
                 ##print(oauth_user[SESSID])
-                resp = flask.make_response(redirect("/forum-metier/admin"))  
+                resp = flask.make_response(redirect("/geii/forum-metier/admin"))  
                 resp.set_cookie("SESSID", value = SESSID)
 
                 print(f"USER {id} authorized with {status} authority")
