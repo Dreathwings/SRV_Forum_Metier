@@ -116,19 +116,23 @@ def admin():
     if CAS:
         if request.cookies.get("SESSID") != None:
             if request.cookies.get("SESSID") in oauth_user.keys() :
-                return
+                data = request.form
+                DB = connect_to_DB_forum_metier()
+                cur = DB.cursor()
+                cur.execute('SELECT * FROM `forummetier`.`DATA`;')
+                data = list(item for item in cur.fetchall())
+                return render_template('admin.html',data=data)
             else:
                 return redirect("/geii/forum-metier/oauth")
         else:
             return redirect("/geii/forum-metier/oauth")
     else:
-        return
-    data = request.form
-    DB = connect_to_DB_forum_metier()
-    cur = DB.cursor()
-    cur.execute('SELECT * FROM `forummetier`.`DATA`;')
-    data = list(item for item in cur.fetchall())
-    return render_template('admin.html',data=data)
+        data = request.form
+        DB = connect_to_DB_forum_metier()
+        cur = DB.cursor()
+        cur.execute('SELECT * FROM `forummetier`.`DATA`;')
+        data = list(item for item in cur.fetchall())
+        return render_template('admin.html',data=data)
 
 
 @app.route("/forum-metier/admin/badges", methods=['POST'])
