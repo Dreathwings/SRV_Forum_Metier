@@ -114,9 +114,9 @@ def admin():
             if request.cookies.get("SESSID") in oauth_user.keys() :
                 return
             else:
-                return redirect("/forum-metier/oauth")
+                return redirect("/geii/forum-metier/oauth")
         else:
-            return redirect("/forum-metier/oauth")
+            return redirect("/geii/forum-metier/oauth")
     else:
         return
     data = request.form
