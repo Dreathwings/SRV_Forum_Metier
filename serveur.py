@@ -29,7 +29,7 @@ CAS = True
 def oauth():
     if 'ticket' in request.values:
         PARAMS = {"ticket":request.values['ticket'],
-                  'service':f"http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/geii/forum-metier/oauth"}
+                  'service':f"https://www.iut.u-bordeaux.fr/geii/forum-metier/oauth"}
         
         
 
@@ -54,7 +54,7 @@ def oauth():
                 status = admin_user.get(id,"BASIC")
                 oauth_user[SESSID] = [id,login,status]
                 ##print(oauth_user[SESSID])
-                resp = flask.make_response(redirect("/forum-metier"))  
+                resp = flask.make_response(redirect("/forum-metier/admin"))  
                 resp.set_cookie("SESSID", value = SESSID)
 
                 ##print(f"USER {id} authorized with {status} authority")
