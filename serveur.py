@@ -112,13 +112,13 @@ def admin():
     if CAS:
         if request.cookies.get("SESSID") != None:
             if request.cookies.get("SESSID") in oauth_user.keys() :
-                continue
+                return
             else:
                 return redirect("/forum-metier/oauth")
         else:
             return redirect("/forum-metier/oauth")
     else:
-        continue
+        return
     data = request.form
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
