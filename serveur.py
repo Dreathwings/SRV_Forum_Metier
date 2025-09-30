@@ -12,6 +12,7 @@ from flask import (
 import mariadb
 import zipfile
 from io import BytesIO
+from uuid import uuid4
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import requests as REQ
