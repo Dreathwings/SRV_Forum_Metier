@@ -43,8 +43,10 @@ def oauth():
             
             cur = DB.cursor()
             cur.execute(f"SELECT CAS_ID FROM ADMIN WHERE CAS_ID = '{id}' ")
-            login = str(cur.fetchone()[0])
-            
+            try:
+                login = str(cur.fetchone()[0])
+            except:
+                return abort(403)
             ##print(f" {DB.user} | Login {data}")
 
             if login != None: # Verif si user autorised sinon 403 list(cur.execute("SELECT ID FROM "))
