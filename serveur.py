@@ -1,6 +1,6 @@
 from flask import Flask, abort, redirect, render_template, request, session, url_for,jsonify
 import mariadb
-app = Flask('forum-metier',static_url_path='/forum-metier/static/')
+app = Flask('forum-metier',static_url_path='/forum-metier/static/',host=172.16.10.36)
 app.secret_key='CECIESTLACLEFSECRETDEGEII'
 app.config.update(TEMPLATES_AUTO_RELOAD=True)
 
@@ -89,4 +89,3 @@ def validate():
 if __name__ == "__main__":
     with app.app_context():
         app.run(port=6970,debug=True)
-
