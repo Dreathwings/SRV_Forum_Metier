@@ -14,7 +14,7 @@ import zipfile
 from io import BytesIO
 from pathlib import Path
 import xml.etree.ElementTree as ET
-
+import requests as REQ
 from generate_badges import badge_basename, extract_participants, render_badge_svg
 app = Flask('forum-metier',static_url_path='/forum-metier/static/')
 app.secret_key='CECIESTLACLEFSECRETDEGEII'
