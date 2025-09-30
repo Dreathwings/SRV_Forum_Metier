@@ -19,6 +19,52 @@ from generate_badges import badge_basename, extract_participants, render_badge_s
 app = Flask('forum-metier',static_url_path='/forum-metier/static/')
 app.secret_key='CECIESTLACLEFSECRETDEGEII'
 app.config.update(TEMPLATES_AUTO_RELOAD=True)
+oauth_user = dict()
+
+admin_user = {"wprivat":"ADMIN",
+              "vgalland":"GESTION"}
+### Activate CAS oauth ###
+CAS = True
+@app.route("/forum-metier/oauth/")
+def oauth():
+    if 'ticket' in request.values:
+        PARAMS = {"ticket":request.values['ticket'],
+                  'service':f"http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/forum-metier/oauth"}
+        
+        
+
+        RESP = REQ.get(url = "https://cas.u-bordeaux.fr/cas/serviceValidate",params=PARAMS)
+        if "authenticationSuccess" in str(RESP.content):
+            id = str(RESP.content).split('cas:user')[1].removeprefix('>').removesuffix("</")
+
+            DB = connect_to_DB_forum_metier()
+            
+            cur = DB.cursor()
+            cur.execute(f"SELECT CAS_ID FROM ADMIN WHERE login = '{id}' ")
+            login = str(cur.fetchone()[0])
+            
+            ##print(f" {DB.user} | Login {data}")
+
+            if login != None: # Verif si user autorised sinon 403 list(cur.execute("SELECT ID FROM "))
+                if id in oauth_user.items(): #Verif si user deja un SESSID
+                    key = {i for i in oauth_user if oauth_user[i]==id}
+                    oauth_user.pop(key)
+
+                SESSID = uuid4().int.__str__()[:10]
+                status = admin_user.get(id,"BASIC")
+                oauth_user[SESSID] = [id,login,status]
+                ##print(oauth_user[SESSID])
+                resp = flask.make_response(redirect("/forum-metier"))  
+                resp.set_cookie("SESSID", value = SESSID)
+
+                ##print(f"USER {id} authorized with {status} authority")
+            else:return abort(403)
+                
+            return resp
+        else:
+            return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/mission/oauth")
+    else:
+        return redirect(f"https://cas.u-bordeaux.fr/cas/login?service=http://{request.environ.get('HTTP_X_FORWARDED_HOST')}/mission/oauth")
 
 def connect_to_DB_forum_metier():
     try:
@@ -63,6 +109,16 @@ def form():
 
 @app.route("/forum-metier/admin",methods=['GET'])
 def admin():
+    if CAS:
+        if request.cookies.get("SESSID") != None:
+            if request.cookies.get("SESSID") in oauth_user.keys() :
+                continue
+            else:
+                return redirect("/forum-metier/oauth")
+        else:
+            return redirect("/forum-metier/oauth")
+    else:
+        continue
     data = request.form
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
@@ -149,4 +205,4 @@ def validate():
 # Running the API
 if __name__ == "__main__":
     with app.app_context():
-        app.run(host="172.16.10.36",port=6970,debug=True)
+        app.run(host="0.0.0.0",port=6970,debug=True)
