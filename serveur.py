@@ -66,7 +66,7 @@ def admin():
     data = request.form
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
-    cur.execute('SELECT * FROM `forum-metier`.`DATA`;')
+    cur.execute('SELECT * FROM `forummetier`.`DATA`;')
     data = list(item for item in cur.fetchall())
     return render_template('admin.html',data=data)
 
@@ -76,7 +76,7 @@ def admin_generate_badges_zip():
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
     try:
-        cur.execute('SELECT * FROM `forum-metier`.`DATA`;')
+        cur.execute('SELECT * FROM `forummetier`.`DATA`;')
         rows = cur.fetchall()
         columns = [column[0] for column in cur.description]
     finally:
