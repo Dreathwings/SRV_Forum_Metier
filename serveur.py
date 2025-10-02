@@ -25,7 +25,8 @@ app.config.update(TEMPLATES_AUTO_RELOAD=True)
 oauth_user = dict()
 
 admin_user = {"wprivat":"ADMIN",
-              "vgalland":"GESTION"}
+              "ltheolie":"ADMIN",
+              "deldescombe":"ADMIN",}
 ### Activate CAS oauth ###
 @app.route("/forum-metier/static/<path:filename>")
 @app.route("/geii/forum-metier/static/<path:filename>")
