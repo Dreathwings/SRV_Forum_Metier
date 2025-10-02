@@ -6,6 +6,7 @@ from flask import (
     request,
     session,
     send_file,
+    send_from_directory,
     url_for,
     jsonify,
 )
@@ -18,7 +19,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 import requests as REQ
 from generate_badges import badge_basename, extract_participants, render_badge_svg
-app = Flask('geii/forum-metier',static_url_path='/forum-metier/static')
+app = Flask('geii/forum-metier')
 app.secret_key='CECIESTLACLEFSECRETDEGEII'
 app.config.update(TEMPLATES_AUTO_RELOAD=True)
 oauth_user = dict()
@@ -26,7 +27,13 @@ oauth_user = dict()
 admin_user = {"wprivat":"ADMIN",
               "vgalland":"GESTION"}
 ### Activate CAS oauth ###
-CAS = False
+@app.route("/forum-metier/static/<path:filename>")
+@app.route("/geii/forum-metier/static/<path:filename>")
+def forum_metier_static(filename):
+    """Serve static assets for legacy deployment prefixes."""
+    return send_from_directory(app.static_folder, filename)
+
+CAS = True
 @app.route("/forum-metier/oauth")
 def oauth():
     if 'ticket' in request.values:
