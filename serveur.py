@@ -144,6 +144,7 @@ def admin_generate_badges_zip():
     try:
         cur.execute('SELECT * FROM `forummetier`.`DATA`;')
         rows = cur.fetchall()
+        print(rows)
         columns = [column[0] for column in cur.description]
     finally:
         cur.close()
