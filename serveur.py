@@ -137,7 +137,7 @@ def admin():
         return render_template('admin.html',data=data)
 
 
-@app.route("/forum-metier/admin/badges", methods=['POST'])
+@app.route("/forum-metier/admin/badges")
 def admin_generate_badges_zip():
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
@@ -181,7 +181,7 @@ def admin_generate_badges_zip():
         download_name="badges_svg.zip",
     )
 
-@app.route("/forum-metier/validate", methods=['POST'])
+@app.route("/forum-metier/validate")
 def validate():
     data = request.form
     DB = connect_to_DB_forum_metier()
