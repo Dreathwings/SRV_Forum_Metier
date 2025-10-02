@@ -469,7 +469,7 @@ def render_badge_svg(
 
     badge_root = deepcopy(template_root)
     update_template(badge_root, participant.as_mapping())
-    _apply_geii_logo(badge_root)
+    #_apply_geii_logo(badge_root)
     _apply_company_logo(
         badge_root,
         participant.company,
