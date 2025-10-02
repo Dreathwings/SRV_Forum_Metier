@@ -18,7 +18,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 import requests as REQ
 from generate_badges import badge_basename, extract_participants, render_badge_svg
-app = Flask('geii/forum-metier',static_url_path='/geii/forum-metier/static')
+app = Flask('geii/forum-metier',static_url_path='/forum-metier/static')
 app.secret_key='CECIESTLACLEFSECRETDEGEII'
 app.config.update(TEMPLATES_AUTO_RELOAD=True)
 oauth_user = dict()
