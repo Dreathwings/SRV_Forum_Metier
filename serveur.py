@@ -174,12 +174,14 @@ def admin_generate_badges_zip():
             archive.writestr(f"{badge_basename(participant, index)}.svg", svg_bytes)
 
     archive_io.seek(0)
+    print('badge fini')
     return send_file(
         archive_io,
         mimetype="application/zip",
         as_attachment=True,
         download_name="badges_svg.zip",
     )
+    
 
 @app.route("/forum-metier/validate")
 def validate():
