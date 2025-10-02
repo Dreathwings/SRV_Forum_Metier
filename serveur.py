@@ -215,6 +215,7 @@ def validate():
     return render_template('validation.html')
 @app.route("/forum-metier/bjr",methods=['POST'])
 def bjr():
+    print("BJR")
 # Running the API
 if __name__ == "__main__":
     with app.app_context():
