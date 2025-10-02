@@ -137,7 +137,7 @@ def admin():
         return render_template('admin.html',data=data)
 
 
-@app.route("/forum-metier/admin/badges", methods=['POST'])
+@app.route("geii/forum-metier/admin/badges", methods=['POST'])
 def admin_generate_badges_zip():
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
@@ -215,4 +215,4 @@ def validate():
 # Running the API
 if __name__ == "__main__":
     with app.app_context():
-        app.run(host="0.0.0.0",port=6970,debug=True)
+        app.run(host="0.0.0.0",port=6970,debug=False)
