@@ -139,6 +139,7 @@ def admin():
 
 @app.route("/forum-metier/admin/badges", methods=['POST'])
 def admin_generate_badges_zip():
+    print('bob')
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
     try:
