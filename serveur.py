@@ -152,6 +152,7 @@ def admin_generate_badges_zip():
     records = [dict(zip(columns, row)) for row in rows]
     participants = extract_participants(records)
     if not participants:
+        print("pas de participant")
         abort(404, description="Aucun participant n'a été trouvé pour générer les badges.")
 
     template_path = Path(__file__).resolve().parent / "static/ressources/badge_template.svg"
