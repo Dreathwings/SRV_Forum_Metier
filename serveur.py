@@ -139,12 +139,12 @@ def admin():
 
 @app.route("/geii/forum-metier/admin/badges",methods=['POST'])
 def admin_generate_badges_zip():
+    print("start badging")
     DB = connect_to_DB_forum_metier()
     cur = DB.cursor()
     try:
         cur.execute('SELECT * FROM `forummetier`.`DATA`;')
         rows = cur.fetchall()
-        print(rows)
         columns = [column[0] for column in cur.description]
     finally:
         cur.close()
