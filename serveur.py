@@ -26,7 +26,7 @@ oauth_user = dict()
 admin_user = {"wprivat":"ADMIN",
               "vgalland":"GESTION"}
 ### Activate CAS oauth ###
-CAS = True
+CAS = False
 @app.route("/forum-metier/oauth")
 def oauth():
     if 'ticket' in request.values:
@@ -213,9 +213,6 @@ def validate():
                   data.get("participants[3][dej_vendredi]",None),))
     
     return render_template('validation.html')
-@app.route("/forum-metier/bjr",methods=['POST'])
-def bjr():
-    print("BJR")
 # Running the API
 if __name__ == "__main__":
     with app.app_context():
