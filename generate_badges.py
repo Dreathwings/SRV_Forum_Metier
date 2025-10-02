@@ -73,22 +73,31 @@ class Participant:
     role: str
     email: str
 
-    @property
-    def full_name(self) -> str:
-        """Return the full name formatted for display on the badge."""
-
-        names = [self.first_name.strip(), self.last_name.strip()]
-        return " ".join(part for part in names if part)
-
     def as_mapping(self) -> Dict[str, str]:
         """Return a mapping used to update the SVG template."""
 
+        line1, line2 = self._name_lines()
         return {
             "company": self.company.strip() or "Entreprise",
-            "full_name": self.full_name or "Participant",
+            "name_line_1": line1,
+            "name_line_2": line2,
             "role": self.role.strip() or "Poste",  # fallback text
             "email": self.email.strip(),
         }
+
+    def _name_lines(self) -> Tuple[str, str]:
+        """Return the two lines used to display the participant's name."""
+
+        first = self.first_name.strip()
+        last = self.last_name.strip()
+
+        if first and last:
+            return first, last
+        if first:
+            return first, ""
+        if last:
+            return last, ""
+        return "Participant", ""
 
 
 def _to_text(value: Any) -> str:

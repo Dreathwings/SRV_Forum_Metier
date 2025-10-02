@@ -160,14 +160,18 @@
       const companies=[];
 
       for(const r of rows){
+        const parcoursSet = parseParcours(r[COLS.parcours]);
+        const declaredRaw = r[COLS.nb];
+        const declared = Number.parseInt(declaredRaw, 10);
         const ent = {
           nom: r[COLS.ent_name],
           adresse: r[COLS.ent_addr],
           cp: r[COLS.ent_cp],
           ville: r[COLS.ent_ville],
           description: r[COLS.ent_desc],
-          parcours: parseParcours(r[COLS.parcours]),
-          personnes:[]
+          parcours: parcoursSet,
+          personnes:[],
+          nb_declares: Number.isFinite(declared) ? declared : null
         };
         // 3 personnes
         for(const base of ["p1","p2","p3"]){
@@ -182,9 +186,12 @@
             if(isOui(dej)) lunchYes++;
           }
         }
+        if(ent.nb_declares == null){
+          ent.nb_declares = ent.personnes.length;
+        }
         companies.push(ent);
         for(const p of ent.parcours){
-          companiesPerParcours[p]++; 
+          companiesPerParcours[p]++;
           peoplePerParcours[p]+=ent.personnes.length;
           groups[p].push(ent);
         }
@@ -236,7 +243,7 @@
           <td class="mono">${ent.cp||'—'}</td>
           <td>${ent.adresse||'—'}</td>
           <td style="white-space:pre-wrap">${ent.description||'—'}</td>
-          <td class="mono">${ent.nb_declares||0}</td>
+          <td class="mono">${fmt(ent.nb_declares||0)}</td>
           <td>${parcoursBadges||'—'}</td>`;
         tbody.appendChild(tr);
       }
@@ -310,10 +317,23 @@
 
     function exportPeopleFull(){
       if(!lastTotals) return;
-      const rows = [["Nom","Prénom","Poste","Email","Entreprise","Déj"]];
+      const rows = [["Nom","Prénom","Poste","Email","Entreprise","Adresse","Code postal","Ville","Description","Parcours","Personnes déclarées","Déj"]];
       for(const ent of lastTotals.companies){
         for(const p of ent.personnes){
-          rows.push([p.nom, p.prenom, p.poste, p.email, ent.nom, p.dejeuner]);
+          rows.push([
+            p.nom,
+            p.prenom,
+            p.poste,
+            p.email,
+            ent.nom,
+            ent.adresse,
+            ent.cp,
+            ent.ville,
+            ent.description,
+            Array.from(ent.parcours).sort().join(", "),
+            ent.nb_declares,
+            p.dejeuner
+          ]);
         }
       }
       downloadCSV('personnes_complet.csv', rows);

@@ -25,7 +25,7 @@ d'identification individuels à partir d'un template SVG.
 
 Le fichier `static/ressources/badge_template.svg` sert de base à chaque badge.
 Il contient des éléments texte avec des identifiants (`id="company"`,
-`id="full_name"`, `id="role"`, `id="email"`). Deux zones `image` sont
+`id="name_line_1"`, `id="name_line_2"`, `id="role"`, `id="email"`). Deux zones `image` sont
 pré-configurées : `id="logo_geii"` pour le logo du département et
 `id="company_logo"` pour le logo de l'entreprise.
 
@@ -92,7 +92,7 @@ Depuis le tableau de bord (`/forum-metier/admin`), un bouton « Télécharger l
 Chaque badge reprend les informations suivantes :
 
 * **Entreprise** — Nom de l'organisation (`ent_nom`).
-* **Nom et prénom** — Combinaison des champs `pX_nom` et `pX_prenom`.
+* **Nom et prénom** — Les deux lignes `name_line_1` et `name_line_2` combinent les champs `pX_prenom` et `pX_nom`.
 * **Poste** — Valeur de `pX_poste` si fournie, sinon la mention « Poste ».
 * **Adresse e-mail** — Valeur de `pX_email`.
 
