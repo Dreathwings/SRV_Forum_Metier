@@ -31,6 +31,7 @@ admin_user = {"wprivat":"ADMIN",
 @app.route("/geii/forum-metier/static/<path:filename>")
 def forum_metier_static(filename):
     """Serve static assets for legacy deployment prefixes."""
+    print("ressources ",app.static_folder)
     return send_from_directory(app.static_folder, filename)
 
 CAS = True
