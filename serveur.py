@@ -69,10 +69,10 @@ def oauth():
                 ##print(oauth_user[SESSID])
                 resp = flask.make_response(redirect("/geii/forum-metier/admin"))  
                 resp.set_cookie("SESSID", value = SESSID)
-                print(f"USER {id} authorized with {status} authority")
+                #print(f"USER {id} authorized with {status} authority")
                 return resp
             else:
-                print('Degage')
+                #print('Degage')
                 return abort(403)
                 
             
