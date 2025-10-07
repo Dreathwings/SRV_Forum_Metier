@@ -303,7 +303,7 @@
                 </div>
                 <div class="col" style="max-width:320px">
                   <label for="participant_poste__i__">Poste actuel</label>
-                  <input id="participant_poste__i__" name="participants[__i__][poste]" type="text" required class="only-letters" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ]+$"/>
+                  <input id="participant_poste__i__" name="participants[__i__][poste]" type="text" required class="only-letters-space" pattern="^[A-Za-zÀ-ÖØ-öø-ÿ]+$"/>
                   <small class="field-error" data-for="participants[__i__][poste]"></small>
                 </div>
               </div>
@@ -714,7 +714,39 @@ Fax&nbsp;: 05&nbsp;56&nbsp;84&nbsp;57&nbsp;83
     if (!form.checkValidity()) { e.preventDefault(); form.reportValidity(); }
   });
 })();
-
+(() => {
+  const stripNonLetters = s => s.normalize('NFC').replace(/[^\p{L}\s]+/gu, "");
+  document.addEventListener('beforeinput', (e) => {
+    if (!e.target.matches('.only-letters-space')) return;
+    if (e.inputType.startsWith('insert') && e.data && /[^\p{L}^\s]/u.test(e.data)) e.preventDefault();
+  });
+  document.querySelectorAll('.only-letters').forEach((el) => {
+    el.addEventListener('paste', (e) => {
+      const t = (e.clipboardData || window.clipboardData).getData('text');
+      const cleaned = stripNonLetters(t);
+      if (cleaned !== t) {
+        e.preventDefault();
+        const { selectionStart:s, selectionEnd:eEnd } = el;
+        el.setRangeText(cleaned, s, eEnd, 'end');
+      }
+    });
+    el.addEventListener('input', () => {
+      const v = el.value, c = stripNonLetters(v);
+      if (v !== c) {
+        const d = v.length - c.length;
+        el.value = c;
+        if (el.setSelectionRange) {
+          const p = Math.max((el.selectionStart||c.length) - d, 0);
+          el.setSelectionRange(p, p);
+        }
+      }
+    });
+  });
+  const form = document.querySelector('form');
+  if (form) form.addEventListener('submit', (e) => {
+    if (!form.checkValidity()) { e.preventDefault(); form.reportValidity(); }
+  });
+})();
 (() => {
   document.addEventListener('input', (e) => {
     if (!e.target.matches('.check-email')) return;
